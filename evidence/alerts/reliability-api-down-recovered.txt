@@ -1,0 +1,22 @@
+                "rules": [
+                    {
+                        "state": "inactive",
+                        "name": "ReliabilityApiDown",
+                        "query": "up{job=\"reliability-api\"} == 0",
+                        "duration": 60,
+                        "keepFiringFor": 0,
+                        "labels": {
+                            "service": "reliability-api",
+                            "severity": "critical"
+                        },
+                        "annotations": {
+                            "description": "Prometheus has been unable to scrape the Reliability API for at least 1 minute.",
+                            "summary": "Reliability API is unavailable"
+                        },
+                        "alerts": [],
+                        "health": "ok",
+                        "evaluationTime": 0.00066704,
+                        "lastEvaluation": "2026-09-09T18:33:35.540874825Z",
+                        "type": "alerting"
+                    }
+                ],
