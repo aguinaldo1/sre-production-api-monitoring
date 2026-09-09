@@ -1,0 +1,12 @@
+groups:
+  - name: reliability-api
+    rules:
+      - alert: ReliabilityApiDown
+        expr: up{job="reliability-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: reliability-api
+        annotations:
+          summary: "Reliability API is unavailable"
+          description: "Prometheus has been unable to scrape the Reliability API for at least 1 minute."
