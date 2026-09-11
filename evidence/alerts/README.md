@@ -722,6 +722,245 @@ Target available but unhealthy responses
 
 ---
 
+# Cenário 3 — High Latency
+
+## Objetivo
+
+Detectar degradação de desempenho mesmo quando a aplicação continua disponível e respondendo com sucesso.
+
+Esse cenário demonstra uma situação importante em produção:
+
+```text
+APPLICATION AVAILABLE
+        ↓
+HTTP 200
+        ↓
+HIGH RESPONSE TIME
+        ↓
+POOR USER EXPERIENCE
+
+
+```
+
+Disponibilidade, isoladamente, não significa que o serviço esteja saudável.
+
+---
+
+
+## Baseline
+
+Antes da degradação controlada, foi estabelecido um baseline de latência utilizando o percentil 95 (p95).
+
+Endpoint utilizado:
+
+```text
+/products
+```
+
+Resultado observado:
+
+```text
+p95 ≈ 5.59 ms
+```
+
+Evidência:
+
+```text
+evidence/latency/p95-baseline.txt
+```
+
+---
+
+## Simulação da Degradação
+
+Foi criado o endpoint controlado:
+
+```text
+/slow
+```
+
+O endpoint introduz aproximadamente 1000 ms de atraso antes de retornar uma resposta bem-sucedida.
+
+Durante o teste:
+
+```text
+HTTP 200
+p95 ≈ 1.069 s
+```
+
+Comparação:
+
+```text
+Baseline  ≈ 5.59 ms
+Degradado ≈ 1069 ms
+```
+
+A latência aumentou aproximadamente 191 vezes, enquanto a aplicação permaneceu disponível.
+
+Evidência:
+
+```text
+evidence/latency/p95-degraded.txt
+```
+
+---
+
+## Regra HighLatency
+
+A regra combina latência elevada com volume mínimo de tráfego:
+
+```text
+p95 > 500 ms
+AND
+requests >= 20 in 5m
+```
+
+O volume mínimo reduz o risco de gerar alertas com base em poucas requisições.
+
+A expressão utilizada foi:
+
+```promql
+(
+  histogram_quantile(
+    0.95,
+    sum by (le) (
+      rate(http_server_requests_seconds_bucket{
+        job="reliability-api",
+        uri!~"/actuator.*"
+      }[5m])
+    )
+  )
+) > 0.5
+and
+(
+  sum(increase(http_server_requests_seconds_count{
+    job="reliability-api",
+    uri!~"/actuator.*"
+  }[5m])) >= 20
+)
+```
+
+A condição precisa permanecer verdadeira durante:
+
+```text
+for: 1m
+```
+
+Severidade:
+
+```text
+warning
+```
+
+---
+
+## Detecção
+
+Durante a degradação controlada, o Prometheus detectou:
+
+```text
+HighLatency = firing
+```
+
+O valor observado de p95 foi aproximadamente:
+
+```text
+1.069 s
+```
+
+Evidência:
+
+```text
+evidence/alerts/high-latency-prometheus-firing.txt
+```
+
+---
+
+
+## Alertmanager
+
+Após o alerta entrar em `firing`, ele foi encaminhado corretamente ao Alertmanager.
+
+Estado observado:
+
+```text
+HighLatency
+state = active
+severity = warning
+service = reliability-api
+```
+
+Evidência:
+
+```text
+evidence/alerts/high-latency-alertmanager-active.txt
+```
+
+---
+
+
+## Recuperação
+
+Após o encerramento da degradação, o alerta retornou para:
+
+```text
+HighLatency = inactive
+```
+
+Evidência:
+
+```text
+evidence/alerts/high-latency-recovered.txt
+```
+
+O ciclo validado foi:
+
+```text
+NORMAL LATENCY
+      ↓
+CONTROLLED DEGRADATION
+      ↓
+p95 > 500 ms
+      ↓
+PROMETHEUS
+      ↓
+HighLatency firing
+      ↓
+ALERTMANAGER active
+      ↓
+DEGRADATION ENDS
+      ↓
+HighLatency inactive
+```
+
+---
+
+## Resultado do Cenário
+
+O teste demonstra que a saúde de um serviço não pode ser avaliada apenas pela disponibilidade ou pelos códigos HTTP.
+
+Durante a degradação, a aplicação apresentou:
+
+```text
+Availability = OK
+HTTP Status  = 200
+Latency      = DEGRADED
+```
+
+Mesmo disponível, o serviço entregava uma experiência significativamente pior ao usuário.
+
+O cenário `HighLatency` adiciona detecção baseada em performance ao projeto, complementando:
+
+```text
+ReliabilityApiDown → indisponibilidade
+HighErrorRate      → degradação por erros
+HighLatency        → degradação por latência
+```
+
+Com isso, o monitoramento passa a distinguir diferentes modos de falha e degradação do serviço.
+
+---
+
 # Resultado Geral
 
 Os testes realizados demonstram operacionalmente:
@@ -749,6 +988,10 @@ O projeto passa a demonstrar capacidade de:
 - distinguir indisponibilidade de degradação;
 - detectar respostas HTTP `5xx`;
 - calcular Error Rate;
+- medir latência HTTP utilizando o percentil 95 (p95);
+- estabelecer um baseline de performance;
+- detectar degradação de latência mesmo com respostas HTTP `200`;
+- alertar quando o p95 ultrapassa o limite definido;
 - considerar volume mínimo de tráfego;
 - evitar alertas baseados em amostras pouco representativas;
 - configurar regras no Prometheus;
