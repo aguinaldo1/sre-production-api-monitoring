@@ -1,0 +1,33 @@
+Latency Degradation
+
+Endpoint: /slow
+Requests: 20
+Simulated delay: 1000 ms
+Window: 5m
+
+PromQL:
+histogram_quantile(
+  0.95,
+  sum by (le) (
+    rate(
+      http_server_requests_seconds_bucket{
+        job="reliability-api",
+        uri!~"/actuator.*"
+      }[5m]
+    )
+  )
+)
+
+Result:
+p95 = 1.0692678996 seconds
+
+Converted:
+p95 ≈ 1069 ms
+
+Comparison:
+Baseline p95 ≈ 5.59 ms
+Degraded p95 ≈ 1069 ms
+
+Interpretation:
+The API remained available and returned successful HTTP responses,
+but request latency increased significantly during the controlled degradation scenario.
