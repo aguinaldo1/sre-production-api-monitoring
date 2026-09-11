@@ -1,0 +1,27 @@
+Latency Baseline
+
+Endpoint: /products
+Requests: 30
+Window: 5m
+
+PromQL:
+histogram_quantile(
+  0.95,
+  sum by (le) (
+    rate(
+      http_server_requests_seconds_bucket{
+        job="reliability-api",
+        uri!~"/actuator.*"
+      }[5m]
+    )
+  )
+)
+
+Result:
+p95 = 0.005592405 seconds
+
+Converted:
+p95 ≈ 5.59 ms
+
+Interpretation:
+This value represents the normal latency baseline before introducing a controlled degradation scenario.
