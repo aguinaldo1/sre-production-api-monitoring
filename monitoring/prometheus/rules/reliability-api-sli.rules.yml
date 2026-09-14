@@ -46,3 +46,7 @@ groups:
               uri=~"/products|/orders|/payments"
             }[5m])
           )
+
+      - record: reliability_api:error_budget_burn_rate:5m
+        expr: |
+          reliability_api:error_ratio:5m / 0.001
