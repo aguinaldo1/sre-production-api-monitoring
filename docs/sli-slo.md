@@ -1,4 +1,13 @@
-# SLI, SLO and Error Budget
+# SLI, SLO and Error Budget — Introductory Extension
+
+> This section is an introductory reliability engineering extension of the
+> Production API Monitoring project.
+>
+> The main objective of this project remains monitoring, alerting and incident
+> detection using Prometheus, Grafana and Alertmanager.
+>
+> A dedicated portfolio project will explore SLI, SLO, Error Budget and
+> Burn Rate engineering in greater depth.
 
 ## Service Scope
 
@@ -85,12 +94,32 @@ of unavailable service time.
 
 ## Important Note
 
-The primary SLI in this lab is request-based.
+The primary SLI demonstrated in this lab is request-based.
 
-The time-based error budget is included only as an intuitive interpretation of a 99.9% availability target and should not be confused with the request-based SLI calculation.
+The time-based error budget is included only as an intuitive interpretation
+of a 99.9% availability objective and should not be confused with the
+request-based SLI calculation.
+
+The short 5-minute recording rules used in the lab are operational examples
+for validating the metrics pipeline. They do not by themselves represent a
+complete 30-day SLO implementation.
+
+## Project Boundary
+
+The concepts introduced here provide a foundation for a future dedicated
+Reliability Engineering project covering:
+
+- longer SLO measurement windows;
+- Error Budget consumption;
+- Burn Rate analysis;
+- multi-window Burn Rate alerting;
+- reliability policy and operational response.
 
 ## Conclusion
 
-The Reliability API now has an explicit reliability objective based on user-facing traffic rather than infrastructure availability alone.
+The Production API Monitoring project demonstrates how application metrics
+can evolve from basic infrastructure monitoring toward service-oriented
+reliability indicators.
 
-This establishes the foundation for error-budget monitoring and future burn-rate alerting.
+The deeper implementation of SLI, SLO and Error Budget engineering is
+intentionally reserved for a dedicated portfolio project.
