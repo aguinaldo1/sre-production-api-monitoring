@@ -1,0 +1,48 @@
+groups:
+  - name: reliability-api-sli
+    rules:
+      - record: reliability_api:availability:ratio_5m
+        expr: |
+          sum(
+            rate(http_server_requests_seconds_count{
+              job="reliability-api",
+              uri=~"/products|/orders|/payments",
+              status=~"2.."
+            }[5m])
+          )
+          /
+          sum(
+            rate(http_server_requests_seconds_count{
+              job="reliability-api",
+              uri=~"/products|/orders|/payments"
+            }[5m])
+          )
+
+      - record: reliability_api:error_ratio:5m
+        expr: |
+          (
+            sum(
+              rate(http_server_requests_seconds_count{
+                job="reliability-api",
+                uri=~"/products|/orders|/payments",
+                status!~"2.."
+              }[5m])
+            )
+            or vector(0)
+          )
+          /
+          sum(
+            rate(http_server_requests_seconds_count{
+              job="reliability-api",
+              uri=~"/products|/orders|/payments"
+            }[5m])
+          )
+
+      - record: reliability_api:request_rate:5m
+        expr: |
+          sum(
+            rate(http_server_requests_seconds_count{
+              job="reliability-api",
+              uri=~"/products|/orders|/payments"
+            }[5m])
+          )
