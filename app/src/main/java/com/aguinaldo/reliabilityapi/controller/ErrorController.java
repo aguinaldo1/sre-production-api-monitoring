@@ -1,4 +1,4 @@
-package com.aguinaldo.reliabilityapi;
+package com.aguinaldo.reliabilityapi.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
